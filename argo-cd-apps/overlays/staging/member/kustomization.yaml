@@ -1,0 +1,34 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../../base/gitops
+  - ../../../base/authentication
+  - ../../../base/application-api
+  - ../../../base/has
+  - ../../../base/release
+  - ../../../base/integration
+  - ../../../base/spi.yaml
+  - ../../../spi-vault.yaml
+  - ../../../tekton-ci.yaml
+  - ../../../cluster-registration.yaml
+  - ../../../enterprise-contract.yaml
+  - ../../../quality-dashboard.yaml
+  - ../../../hac-pact-broker.yaml
+  - ../../../build-service.yaml
+  - ../../../jvm-build-service.yaml
+  - ../../../pipeline-service.yaml
+  - ../../../build-templates.yaml
+  - ../../../shared-resources.yaml
+  - ../../../internal-services.yaml
+  - ../../../monitoring-workload-prometheus.yaml
+  - ../../../monitoring-workload-grafana.yaml
+  - ../../../monitoring-workload-logging.yaml
+patches:
+  - path: member-cluster-label-selector.yaml
+    target:
+      group: argoproj.io
+      version: v1alpha1
+      kind: ApplicationSet
+
+#components:
+#  - ../../../base/application-api
