@@ -1,14 +1,11 @@
-resources:
-- ../../base
-- dev-sso.yaml
-
-namespace: openshift-gitops
-
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+resources:
+  - ../../base/host
+  - ../../base/host/optional/dev-sso
+  - ../../base/member
 patchesStrategicMerge:
-  - repo-overlay.yaml 
   - delete-applications.yaml
-
-
-
+components:
+  - ../../k-components/inject-infra-deployments-repo-details
+  - ../../k-components/all-in-one
