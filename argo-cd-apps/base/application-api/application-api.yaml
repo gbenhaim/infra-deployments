@@ -4,38 +4,26 @@ metadata:
   name: application-api
 spec:
   generators:
-    - clusters:
-        selector:
-          matchLabels:
-            deploy-stonesoup: "true"
+    - clusters: {}
   template:
     metadata:
       name: application-api-{{nameNormalized}}
     spec:
       project: default
-
       source:
         path: components/application-api
         repoURL: https://github.com/redhat-appstudio/infra-deployments.git
         targetRevision: main
-
       destination:
         namespace: application-api
         server: '{{server}}'
-
       syncPolicy:
-
-        # Comment this out if you want to manually trigger deployments (using the 
-        # Argo CD Web UI or Argo CD CLI), rather than automatically deploying on
-        # every new Git commit to your directory.
         automated: 
           prune: true
           selfHeal: true
-
         syncOptions:
         - CreateNamespace=true
-
         retry:
-          limit: 50 # number of failed sync attempt retries; unlimited number of attempts if less than 0
+          limit: 50
           backoff:
-            duration: 15s # the amount to back off. Default unit is seconds, but could also be a duration (e.g. "2m", "1h")
+            duration: 15s

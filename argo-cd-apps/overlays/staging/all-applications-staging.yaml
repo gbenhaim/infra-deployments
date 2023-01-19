@@ -5,24 +5,18 @@ metadata:
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
-
 spec:
   project: default
-
   source:
     path: argo-cd-apps/overlays/staging
     repoURL: https://github.com/gbenhaim/infra-deployments.git
     targetRevision: preview-main
-
   destination:
     namespace: argocd
     server: https://kubernetes.default.svc
-
   syncPolicy:
-
     automated: 
       prune: true
       selfHeal: true
-
     syncOptions:
     - CreateNamespace=true
