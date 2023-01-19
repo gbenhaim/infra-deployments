@@ -2,7 +2,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: all-components-staging
-  namespace: openshift-gitops
+  namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 
@@ -11,11 +11,11 @@ spec:
 
   source:
     path: argo-cd-apps/overlays/staging
-    repoURL: https://github.com/redhat-appstudio/infra-deployments.git
-    targetRevision: main
+    repoURL: https://github.com/gbenhaim/infra-deployments.git
+    targetRevision: preview-main
 
   destination:
-    namespace: openshift-gitops
+    namespace: argocd
     server: https://kubernetes.default.svc
 
   syncPolicy:
