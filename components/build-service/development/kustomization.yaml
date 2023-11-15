@@ -22,3 +22,11 @@ patches:
       kind: Deployment
       name: build-service-controller-manager
     path: pac-webhook-insecure-ssl-patch.yaml
+
+
+# quay.io/gbenhaim0/build-service:no-devfile 
+
+images:
+- name: quay.io/redhat-appstudio/build-service
+  newName: quay.io/gbenhaim0/build-service
+  newTag: no-devfile
