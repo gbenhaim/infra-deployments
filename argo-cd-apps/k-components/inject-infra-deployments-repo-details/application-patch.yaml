@@ -4,4 +4,4 @@
   value: https://github.com/gbenhaim/infra-deployments.git
 - op: replace
   path: /spec/source/targetRevision
-  value: preview-HEAD
+  value: preview-my-dev
