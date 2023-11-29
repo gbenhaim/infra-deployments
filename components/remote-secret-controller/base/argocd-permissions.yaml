@@ -21,7 +21,7 @@ metadata:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: crd-manager-remote-secret
+  name: crd-manager-for-remote-secret
 subjects:
 - kind: ServiceAccount
   name: openshift-gitops-argocd-application-controller
