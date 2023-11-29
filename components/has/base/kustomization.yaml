@@ -9,8 +9,8 @@ components:
   - ../k-components/enable-profiling
 images:
   - name: quay.io/redhat-appstudio/application-service
-    newName: quay.io/redhat-appstudio/application-service
-    newTag: 0818fb9274954f390020b5ec64ffc81036d24d2b
+    newName: quay.io/gbenhaim0/has
+    newTag: gitlab
 configMapGenerator:
   - literals:
       - GITHUB_ORG=gbenhaim-apps
