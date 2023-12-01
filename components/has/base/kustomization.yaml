@@ -10,7 +10,7 @@ components:
 images:
   - name: quay.io/redhat-appstudio/application-service
     newName: quay.io/gbenhaim0/has
-    newTag: gitlab
+    newTag: gitlab2
 configMapGenerator:
   - literals:
       - GITHUB_ORG=gbenhaim-apps
