@@ -1,0 +1,33 @@
+- Create a job for populating the token - identityProviders
+- Patch the redirect urls
+- Patch the web origins
+    - Patch serviceaccounts.openshift.io/oauth-redirecturi.rhtap
+
+
+ CURL_CA_BUNDLE=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt  curl  https://openshift.default.svc/.well-known/oauth-authorization-server
+
+    
+{
+  "issuer": "https://oauth-openshift.apps.gbenhaim.lab.upshift.rdu2.redhat.com",
+  "authorization_endpoint": "https://oauth-openshift.apps.gbenhaim.lab.upshift.rdu2.redhat.com/oauth/authorize",
+  "token_endpoint": "https://oauth-openshift.apps.gbenhaim.lab.upshift.rdu2.redhat.com/oauth/token",
+  "scopes_supported": [
+    "user:check-access",
+    "user:full",
+    "user:info",
+    "user:list-projects",
+    "user:list-scoped-projects"
+  ],
+  "response_types_supported": [
+    "code",
+    "token"
+  ],
+  "grant_types_supported": [
+    "authorization_code",
+    "implicit"
+  ],
+  "code_challenge_methods_supported": [
+    "plain",
+    "S256"
+  ]
+}

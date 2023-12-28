@@ -4,5 +4,6 @@ resources:
   - ../staging
   - ../../base/smee-client
   - ../../base/ui
+  - ../../base/keycloak
 patchesStrategicMerge:
   - delete-applications.yaml

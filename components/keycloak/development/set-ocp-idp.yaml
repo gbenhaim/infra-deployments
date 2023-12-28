@@ -1,0 +1,10 @@
+---
+- op: add
+  path: /spec/realm/identityProviders/0/config/authorizationUrl
+  value: https://oauth-openshift.apps.gbenhaim.lab.upshift.rdu2.redhat.com/oauth/authorize
+- op: add
+  path: /spec/realm/identityProviders/0/config/baseUrl
+  value: https://api.gbenhaim.lab.upshift.rdu2.redhat.com:6443
+- op: add
+  path: /spec/realm/identityProviders/0/config/tokenUrl
+  value: https://oauth-openshift.apps.gbenhaim.lab.upshift.rdu2.redhat.com/oauth/token
