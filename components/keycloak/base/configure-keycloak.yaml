@@ -1,0 +1,109 @@
+---
+kind: ServiceAccount
+apiVersion: v1
+metadata:
+  name: openshift-provider
+  annotations:
+    serviceaccounts.openshift.io/oauth-redirecturi.rhtap: >-
+      https://keycloak-rhtap-auth.apps.rosa.stone-stage-p01.apys.p3.openshiftapps.com/auth/realms/redhat-external/broker/openshift-v4/endpoint
+---
+kind: Secret
+apiVersion: v1
+metadata:
+  name: openshift-provider
+type: kubernetes.io/service-account-token
+---
+apiVersion: keycloak.org/v1alpha1
+kind: Keycloak
+metadata:
+  labels:
+    app: sso
+  name: keycloak
+spec:
+  external:
+    enabled: false
+  externalAccess:
+    enabled: true
+  instances: 1
+  keycloakDeploymentSpec:
+    imagePullPolicy: Always
+  multiAvailablityZones:
+    enabled: true
+  postgresDeploymentSpec:
+    imagePullPolicy: Always
+---
+apiVersion: keycloak.org/v1alpha1
+kind: KeycloakRealm
+metadata:
+  name: redhat-external
+  labels:
+    realm: redhat-external
+    app: sso
+spec:
+  instanceSelector:
+    matchLabels:
+      app: sso
+  realm:
+    clientScopes:
+      - attributes:
+          display.on.consent.screen: 'true'
+          include.in.token.scope: 'true'
+        id: 672455b2-1e92-44f6-9fb6-fe2017995aed
+        name: profile_level.name_and_dev_terms
+        protocol: openid-connect
+    displayName: redhat-external
+    enabled: true
+    id: redhat-external
+    identityProviders:
+      - alias: openshift-v4
+        config:
+          authorizationUrl: >-
+            https://oauth.stone-stage-p01.apys.p3.openshiftapps.com/oauth/authorize
+          baseUrl: 'https://api.stone-stage-p01.apys.p3.openshiftapps.com:443'
+          clientId: 'system:serviceaccount:rhtap-auth:openshift-provider'
+          clientSecret: "Will be added by a job"
+          tokenUrl: 'https://oauth.stone-stage-p01.apys.p3.openshiftapps.com/oauth/token'
+        enabled: true
+        internalId: openshift-v4
+        providerId: openshift-v4
+    realm: redhat-external
+    sslRequired: all
+---
+apiVersion: keycloak.org/v1alpha1
+kind: KeycloakClient
+metadata:
+  name: cloud-services
+  labels:
+    app: sso
+spec:
+  client:
+    enabled: true
+    clientAuthenticatorType: client-secret
+    redirectUris:
+      - '*'
+    clientId: cloud-services
+    optionalClientScopes:
+      - address
+      - phone
+      - profile_level.name_and_dev_terms
+      - offline_access
+      - microprofile-jwt
+    defaultClientScopes:
+      - web-origins
+      - acr
+      - nameandterms
+      - profile
+      - roles
+      - email
+    implicitFlowEnabled: false
+    secret: client-secret
+    publicClient: true
+    standardFlowEnabled: true
+    webOrigins:
+      - '*'
+    id: e3e1d703-62c1-46f4-b706-e3d7eebafd01
+    directAccessGrantsEnabled: false
+  realmSelector:
+    matchLabels:
+      realm: redhat-external
+  scopeMappings: {}

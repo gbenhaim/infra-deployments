@@ -1,0 +1,4 @@
+- Create a job for populating the token - identityProviders
+- Patch the redirect urls
+- Patch the web origins
+- Patch serviceaccounts.openshift.io/oauth-redirecturi.rhtap
