@@ -8,6 +8,7 @@ resources:
   - ../../base/member/optional/infra-deployments/spi-vault
   - ../../base/all-clusters
   - ../../base/keycloak
+  - ../../base/ui
 
 patchesStrategicMerge:
   - delete-applications.yaml
@@ -118,3 +119,13 @@ patches:
       kind: ApplicationSet
       version: v1alpha1
       name: keycloak
+  - path: set-local-cluster-label.yaml
+    target:
+      kind: ApplicationSet
+      version: v1alpha1
+      name: ui
+  - path: development-overlay-patch.yaml
+    target:
+      kind: ApplicationSet
+      version: v1alpha1
+      name: ui
