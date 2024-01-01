@@ -225,6 +225,39 @@ spec:
               access.token.claim: "true"
               claim.name: middle_name
               jsonType.label: String
+      - id: 45e1900d-2199-45fc-9028-a39497a6cdd5
+        name: email
+        description: 'OpenID Connect built-in scope: email'
+        protocol: openid-connect
+        attributes:
+          include.in.token.scope: "true"
+          display.on.consent.screen: "true"
+          consent.screen.text: ${emailScopeConsentText}
+        protocolMappers:
+          - id: 149315f5-4595-4794-b11f-f4b68b1c9f7a
+            name: email
+            protocol: openid-connect
+            protocolMapper: oidc-usermodel-property-mapper
+            consentRequired: false
+            config:
+              userinfo.token.claim: "true"
+              user.attribute: email
+              id.token.claim: "true"
+              access.token.claim: "true"
+              claim.name: email
+              jsonType.label: String
+          - id: 26f0791c-93cf-4241-9c92-5528e67b9817
+            name: email verified
+            protocol: openid-connect
+            protocolMapper: oidc-usermodel-property-mapper
+            consentRequired: false
+            config:
+              userinfo.token.claim: "true"
+              user.attribute: emailVerified
+              id.token.claim: "true"
+              access.token.claim: "true"
+              claim.name: email_verified
+              jsonType.label: boolean
     displayName: redhat-external
     enabled: true
     id: redhat-external
