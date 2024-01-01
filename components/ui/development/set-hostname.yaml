@@ -1,0 +1,4 @@
+---
+- op: add
+  path: /spec/host
+  value: rhtap.apps.gbenhaim.lab.upshift.rdu2.redhat.com
