@@ -22,6 +22,9 @@ patches:
       kind: Deployment
       name: build-service-controller-manager
     path: pac-webhook-insecure-ssl-patch.yaml
-
+  - path: add-webhook-target-patch.yaml
+    target:
+      name: build-service-controller-manager
+      kind: Deployment
 components:
   - ../components/rh-certs
