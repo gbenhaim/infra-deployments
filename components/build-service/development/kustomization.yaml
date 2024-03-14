@@ -8,11 +8,17 @@ namespace: build-service
 
 images:
 - name: quay.io/redhat-appstudio/build-service
-  newName: quay.io/redhat-appstudio/build-service
-  newTag: 29b09e5d8350f75c92d5796fbbf62647fe28610b
+  newName: quay.io/gbenhaim0/build-service
+  newTag: config-webhook
 
 commonAnnotations:
   argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+
+
+configMapGenerator:
+  - name: webhook-config
+    files: 
+      - webhook-config.json
 
 patches:
   - target:
@@ -36,3 +42,4 @@ patches:
 
 components:
   - ../components/rh-certs
+  - ../components/webhook-config
