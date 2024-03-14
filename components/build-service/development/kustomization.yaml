@@ -9,7 +9,7 @@ namespace: build-service
 images:
 - name: quay.io/redhat-appstudio/build-service
   newName: quay.io/gbenhaim0/build-service
-  newTag: config-webhook
+  newTag: config-webhook-with-scm-url
 
 commonAnnotations:
   argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
