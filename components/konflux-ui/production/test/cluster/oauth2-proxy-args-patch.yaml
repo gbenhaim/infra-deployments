@@ -1,0 +1,18 @@
+---
+- op: replace
+  path: /spec/template/spec/containers/2/args
+  value:
+    - -provider=openshift
+    - -http-address=:6000
+    - '-https-address='
+    - -pass-access-token
+    - -pass-user-bearer-token
+    - -cookie-secure=true
+    # - -cookie-name=__Host-konflux-ci-cookie
+    - -email-domain=*
+    - -set-xauthrequest
+    - -upstream=http://localhost:8080
+    # - -openshift-service-account=proxy
+    - -proxy-prefix=/oauth2
+    - -client-id=konflux-oauth-proxy
+    - -scope=user:full

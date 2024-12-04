@@ -1,0 +1,20 @@
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: konflux
+  annotations:
+    # Needed for running a local development env for the Konflux UI
+    haproxy.router.openshift.io/set-forwarded-headers: if-none
+spec:
+  host: tba
+  path: /
+  port:
+    targetPort: web-tls
+  tls:
+    insecureEdgeTerminationPolicy: Redirect
+    termination: reencrypt
+  to:
+    kind: Service
+    name: proxy
+    weight: 100

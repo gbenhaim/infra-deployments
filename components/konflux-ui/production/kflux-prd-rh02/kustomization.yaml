@@ -1,12 +1,15 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - ../base
+  - ../../base
+  - https://github.com/konflux-ci/konflux-ci/konflux-ci/ui/core?ref=61a67ed1783f4129062d889ee67a76454454b6e5
 
 configMapGenerator:
-  - name: dex
-    files:
-      - dex-config.yaml
+  - name: proxy-init-config
+    behavior: replace
+    literals:
+      - IMPERSONATE=false
+      - TEKTON_RESULTS_URL=https://tekton-results-api-service.tekton-results.svc.cluster.local:8080
 
 patches:
   - path: add-service-certs-patch.yaml
@@ -32,10 +35,6 @@ patches:
       group: apps
       version: v1
       kind: Deployment
-  - path: set-redirect-uri.yaml
-    target:
-      name: dex-client
-      kind: ServiceAccount
   - path: set-hostname.yaml
     target:
       kind: Route

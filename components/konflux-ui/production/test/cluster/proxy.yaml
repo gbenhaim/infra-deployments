@@ -32,7 +32,7 @@ spec:
             app: proxy
       initContainers:
       - name: copy-static-content
-        image: quay.io/konflux-ci/konflux-ui@sha256:4d638ff6ed4874de0406b200e671ebac72b3f03c4d46b92f02bf62809c1cbed3
+        image: quay.io/konflux-ci/konflux-ui
         command:
           - cp
           - -R
@@ -52,21 +52,34 @@ spec:
           requests:
             cpu: 10m
             memory: 64Mi
-      - name: add-sva-token-to-nginx-config
+      - name: generate-nginx-configs
         image: registry.access.redhat.com/ubi9/ubi@sha256:66233eebd72bb5baa25190d4f55e1dc3fff3a9b77186c1f91a0abdb274452072
+        envFrom:
+          - configMapRef:
+              name: proxy-init-config
         command:
           - sh
           - -c
           - |
             set -e
+
+            auth_conf=/mnt/nginx-generated-config/auth.conf
             
-            token=$(cat /mnt/api-token/token)
-            # for websocket connections padding should be removed from a base64 encoded token
-            token64=$(base64 -w 0 /mnt/api-token/token | sed -E  s,=+$,,g)
+            if [[ "$IMPERSONATE" == "true" ]]; then
+              token=$(cat /mnt/api-token/token)
+              echo 'auth_request_set $user  $upstream_http_x_auth_request_email;' > "$auth_conf"
+              echo 'proxy_set_header Impersonate-User $user;' >> "$auth_conf"
+              echo "proxy_set_header Authorization \"Bearer $token\";" >> "$auth_conf"
+            else
+              echo "# impersonation was disabled by config" > "$auth_conf"
+            fi
 
-            echo "proxy_set_header Authorization \"Bearer $token\";" > /mnt/nginx-generated-config/bearer.conf
+            chmod 640 "$auth_conf"
 
-            echo "proxy_set_header Sec-WebSocket-Protocol \"base64url.bearer.authorization.k8s.io.${token64}, base64.binary.k8s.io\";" > /mnt/nginx-generated-config/websocket.conf
+            echo \
+              "proxy_pass ${TEKTON_RESULTS_URL:?tekton results url must be provided};" \
+              > /mnt/nginx-generated-config/tekton-results.conf
+
         volumeMounts:
         - name: nginx-generated-config
           mountPath: /mnt/nginx-generated-config
@@ -84,10 +97,10 @@ spec:
             cpu: 10m
             memory: 64Mi
       containers:
-      - image: openresty/openresty:1.25.3.1-0-jammy
-        name: nginx-120
+      - image: registry.access.redhat.com/ubi9/nginx-124@sha256:b924363ff07ee0f8fd4f680497da774ac0721722a119665998ff5b2111098ad1
+        name: nginx
         command: 
-          - "/usr/local/openresty/bin/openresty"
+          - nginx
           - "-g"
           - "daemon off;"
           - -c
@@ -141,8 +154,6 @@ spec:
             mountPath: /mnt
           - name: nginx-generated-config
             mountPath: /mnt/nginx-generated-config
-          - name: openresty
-            mountPath: /var/run/openresty
           - name: static-content
             mountPath: /opt/app-root/src/static-content
         securityContext:
@@ -169,21 +180,46 @@ spec:
       - image: quay.io/oauth2-proxy/oauth2-proxy@sha256:3da33b9670c67bd782277f99acadf7026f75b9507bfba2088eb2d497266ef7fc
         name: oauth2-proxy
         env:
+        # - name: OAUTH2_PROXY_CLIENT_SECRET
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: proxy
+        #       key: token
         - name: OAUTH2_PROXY_CLIENT_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: oauth2-proxy-client-secret
-              key: client-secret
+          value: password
         - name: OAUTH2_PROXY_COOKIE_SECRET
           valueFrom:
             secretKeyRef:
               name: oauth2-proxy-cookie-secret
               key: cookie-secret
         args:
-          - to be replaced by a patch
+          - --provider
+          - oidc
+          - --provider-display-name
+          - "Dex OIDC"
+          - --client-id
+          - oauth2-proxy
+          - --http-address
+          - "127.0.0.1:6000"
+          - --redirect-url
+          - https://localhost:9443/oauth2/callback
+          - --oidc-issuer-url
+          - https://localhost:9443/idp/
+          - --cookie-secure
+          - "true"
+          - --cookie-name
+          - __Host-konflux-ci-cookie
+          - --email-domain
+          - "*"
+          - --ssl-insecure-skip-verify
+          - "true"
+          - --set-xauthrequest
+          - "true"
+          - --whitelist-domain
+          - localhost:9443
         ports:
           - containerPort: 6000
-            name: web
+            name: oauth2-proxy
             protocol: TCP
         resources:
           limits:
@@ -196,6 +232,15 @@ spec:
           readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 1001
+      - image: quay.io/gbenhaim0/mccutchen/go-httpbin
+        name: httpbin
+        resources:
+          limits:
+            cpu: 300m
+            memory: 256Mi
+          requests:
+            cpu: 30m
+            memory: 128Mi      
       volumes:
         - configMap:
             defaultMode: 420
@@ -218,8 +263,6 @@ spec:
         - name: api-token
           secret:
             secretName: proxy
-        - name: openresty
-          emptyDir: {}
         - name: static-content
           emptyDir: {}
 
@@ -245,13 +288,53 @@ spec:
       port: 9443
       protocol: TCP
       targetPort: web-tls
+    - name: oauth2-proxy
+      port: 6000
+      targetPort: oauth2-proxy
   selector:
     app: proxy
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: konflux
+spec:
+  host: tba
+  path: /
+  port:
+    targetPort: web-tls
+  tls:
+    insecureEdgeTerminationPolicy: Redirect
+    termination: reencrypt
+  to:
+    kind: Service
+    name: proxy
+    weight: 100
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: konflux-oauth2-proxy
+spec:
+  host: konflux-proxy.apps.gbenhaim2.lab.upshift.rdu2.redhat.com
+  path: /
+  port:
+    targetPort: oauth2-proxy
+  tls:
+    insecureEdgeTerminationPolicy: Redirect
+    termination: edge
+  to:
+    kind: Service
+    name: proxy
+    weight: 100
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: proxy
+  annotations:
+    serviceaccounts.openshift.io/oauth-redirectreference.primary: '{"kind":"OAuthRedirectReference","apiVersion":"v1","reference":{"kind":"Route","name":"konflux"}}'
+    serviceaccounts.openshift.io/oauth-redirectreference.secondery: '{"kind":"OAuthRedirectReference","apiVersion":"v1","reference":{"kind":"Route","name":"konflux-oauth2-proxy"}}'
 ---
 apiVersion: v1
 kind: Secret
@@ -260,18 +343,6 @@ metadata:
   annotations:
     kubernetes.io/service-account.name: proxy
 type: kubernetes.io/service-account-token
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: konflux-proxy
-rules:
-- apiGroups: [""]
-  resources: ["users"]
-  verbs: ["impersonate"]
-- apiGroups: ["authorization.k8s.io"]
-  resources: ["localsubjectaccessreviews"]
-  verbs: ["create"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding

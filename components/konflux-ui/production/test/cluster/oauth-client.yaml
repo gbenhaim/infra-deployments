@@ -1,0 +1,9 @@
+kind: OAuthClient
+apiVersion: oauth.openshift.io/v1
+metadata:
+ name: konflux-oauth-proxy
+secret: password
+redirectURIs:
+ - https://konflux-ui.apps.gbenhaim2.lab.upshift.rdu2.redhat.com
+ - https://konflux-proxy.apps.gbenhaim2.lab.upshift.rdu2.redhat.com
+grantMethod: prompt
