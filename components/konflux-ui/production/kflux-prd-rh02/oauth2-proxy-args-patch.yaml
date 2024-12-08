@@ -1,0 +1,17 @@
+---
+- op: replace
+  path: /spec/template/spec/containers/2/args
+  value:
+    - -provider=openshift
+    - -http-address=:6000
+    - '-https-address='
+    - -pass-access-token
+    - -pass-user-bearer-token
+    - -cookie-secure=true
+    - -email-domain=*
+    - -set-xauthrequest
+    - -upstream=file:///dev/null
+    - -proxy-prefix=/oauth2
+    - -client-id=konflux-oauth-proxy
+    - -scope=user:full
+    - '-openshift-delegate-urls={"/": {"resource": "namespaces", "verb": "get"}}'

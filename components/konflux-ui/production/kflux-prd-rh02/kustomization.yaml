@@ -1,0 +1,58 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../base
+  - proxy.yaml
+  - configure-oauth-proxy-secret.yaml
+
+images:
+  - name: quay.io/konflux-ci/workspace-manager
+    digest: sha256:0b32c063d9fbce1af4f851d7cf1f8bc0ad1eda06dafaa4ad2bd4a0d5fbba62c7
+
+  - name: quay.io/konflux-ci/konflux-ui
+    newTag: ed4ee3e5e7ae016ad235acc3f9d1a4cb373cedba
+
+  - name: quay.io/oauth2-proxy/oauth2-proxy
+    newName: quay.io/gbenhaim0/ocp-oauth-proxy
+    newTag: v6
+
+configMapGenerator:
+  - name: proxy
+    files:
+      - nginx.conf
+  - name: proxy-init-config
+    literals:
+      - IMPERSONATE=false
+      - TEKTON_RESULTS_URL=https://tekton-results-api-service.tekton-results.svc.cluster.local:8080
+
+patches:
+  - path: add-service-certs-patch.yaml
+    target:
+      group: ""
+      version: v1
+      kind: Service
+      name: proxy
+  - path: oauth2-proxy-args-patch.yaml
+    target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: proxy
+  - path: remove-run-as-user-proxy-patch.yaml
+    target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: proxy
+  - path: set-replicas-patch.yaml
+    target:
+      group: apps
+      version: v1
+      kind: Deployment
+  - path: set-hostname.yaml
+    target:
+      kind: Route
+      version: v1
+      name: konflux
+
+namespace: konflux-ui
